@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự Đoán Điểm Thi THPT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .predict-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .predict-btn:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            font-size: 1.1em;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .result.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .score-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subjects {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .subject {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        .subject-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .subject-score {
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+
+        .disclaimer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .wishes-section {
+            margin-top: 25px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+            cursor: pointer;
+            padding: 20px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border: 2px dashed #667eea;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wishes-section:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .wishes-section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .wishes-content {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .click-hint {
+            font-size: 1em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .wishes-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s;
+            opacity: 0;
+        }
+
+        .wishes-section:hover::before {
+            animation: shine 0.8s ease-in-out;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+        }
+
+        @keyframes gentleShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .sparkle {
+            position: absolute;
+            color: #ffd700;
+            font-size: 1.5em;
+            animation: sparkle 2s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Dự Đoán Điểm THPT</h1>
+        <p class="subtitle">Nhập tên để khám phá điểm số "thần thánh" của bạn!</p>
+        
+        <div class="input-group">
+            <label for="name">Tên của bạn:</label>
+            <input type="text" id="name" placeholder="Nguyễn Văn A" maxlength="50">
+        </div>
+        
+        <button class="predict-btn" onclick="predictScore()">
+            ✨ Dự Đoán Ngay ✨
+        </button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #667eea;">Đang phân tích tên của bạn...</p>
+        </div>
+        
+        <div class="result" id="result">
+            <h2>🌟 Kết Quả Dự Đoán 🌟</h2>
+            <p>Xin chào <strong id="resultName"></strong>!</p>
+            <div class="score-display" id="totalScore"></div>
+            <p><strong>Tổng điểm 3 môn</strong></p>
+            
+            <div class="subjects">
+                <div class="subject">
+                    <div class="subject-name">📚 Toán</div>
+                    <div class="subject-score" id="mathScore"></div>
+                </div>
+                <div class="subject">
+                    <div class="subject-name">📖 Văn</div>
+                    <div class="subject-score" id="literatureScore"></div>
+                </div>
+                <div class="subject">
+                    <div class="subject-name">🌍 Anh</div>
+                    <div class="subject-score" id="englishScore"></div>
+                </div>
+            </div>
+            
+            <p id="encouragement" style="margin-top: 20px; font-weight: bold;"></p>
+        </div>
+        
+        <div class="disclaimer">
+            ⚠️ Đây chỉ là trò chơi vui nhộn, không phải dự đoán thật!<br>
+            Hãy cố gắng học tập thật tốt để đạt điểm cao nhé! 📚✨
+        </div>
+
+        <div class="wishes-section" id="wishesSection" onclick="showWishes()">
+            <div class="click-hint">👆 Nhấn vào đây để nhận lời chúc đặc biệt!</div>
+            <div class="wishes-content" id="wishesContent" style="display: none;">
+                💝 Chúc tất cả các bạn thi THPT đạt kết quả tốt nhất!<br>
+                📚 Hãy cố gắng học tập chăm chỉ để đạt ước mơ của mình!<br>
+                🌟 Tin vào bản thân và chinh phục mọi thử thách!<br>
+                🎯 Thành công sẽ đến với những ai kiên trì và nỗ lực! ✨
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let wishesShown = false;
+
+        function showWishes() {
+            const wishesSection = document.getElementById('wishesSection');
+            const clickHint = document.querySelector('.click-hint');
+            const wishesContent = document.getElementById('wishesContent');
+            
+            if (!wishesShown) {
+                clickHint.style.display = 'none';
+                wishesContent.style.display = 'block';
+                wishesShown = true;
+                
+                // Create celebration sparkles
+                for (let i = 0; i < 10; i++) {
+                    setTimeout(() => createSparkle(), i * 100);
+                }
+                
+                // Add a gentle shake animation
+                wishesSection.style.animation = 'gentleShake 0.5s ease-in-out';
+                setTimeout(() => {
+                    wishesSection.style.animation = '';
+                }, 500);
+            }
+        }
+
+        function createSparkle() {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.innerHTML = '✨';
+            sparkle.style.left = Math.random() * window.innerWidth + 'px';
+            sparkle.style.top = Math.random() * window.innerHeight + 'px';
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => {
+                sparkle.remove();
+            }, 2000);
+        }
+
+        function hashString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return Math.abs(hash);
+        }
+
+        function generateScore(name, subject, min = 6.0, max = 10.0) {
+            const seed = hashString(name + subject);
+            const random = (seed % 10000) / 10000;
+            const score = min + random * (max - min);
+            return Math.round(score * 10) / 10;
+        }
+
+        function getEncouragement(totalScore) {
+            const wishes = [
+                "🍀 Chúc bạn thi tốt và đạt kết quả như mong muốn!",
+                "🌟 Chúc bạn thành công rực rỡ trong kỳ thi sắp tới!",
+                "💪 Chúc bạn tự tin bước vào phòng thi và làm bài thật tốt!",
+                "🎯 Chúc bạn đạt điểm cao và vào được trường mơ ước!",
+                "✨ Chúc bạn may mắn và thành công trong kỳ thi THPT!"
+            ];
+            
+            let encouragement = "";
+            if (totalScore >= 27) encouragement = "🏆 Xuất sắc! Bạn là thiên tài! ";
+            else if (totalScore >= 24) encouragement = "🌟 Giỏi quá! Đại học top đang chờ bạn! ";
+            else if (totalScore >= 21) encouragement = "👍 Tốt lắm! Cố gắng thêm một chút nữa nhé! ";
+            else if (totalScore >= 18) encouragement = "💪 Không tệ! Bạn có tiềm năng phát triển! ";
+            else encouragement = "🔥 Hãy cố gắng hơn nữa! Bạn làm được mà! ";
+            
+            const randomWish = wishes[Math.floor(Math.random() * wishes.length)];
+            return encouragement + randomWish;
+        }
+
+        function predictScore() {
+            const nameInput = document.getElementById('name');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                alert('Vui lòng nhập tên của bạn!');
+                nameInput.focus();
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').classList.remove('show');
+
+            // Simulate calculation delay
+            setTimeout(() => {
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+
+                // Generate scores based on name
+                const mathScore = generateScore(name, 'math', 5.0, 10.0);
+                const literatureScore = generateScore(name, 'literature', 5.0, 10.0);
+                const englishScore = generateScore(name, 'english', 5.0, 10.0);
+                const totalScore = Math.round((mathScore + literatureScore + englishScore) * 10) / 10;
+
+                // Display results
+                document.getElementById('resultName').textContent = name;
+                document.getElementById('mathScore').textContent = mathScore.toFixed(1);
+                document.getElementById('literatureScore').textContent = literatureScore.toFixed(1);
+                document.getElementById('englishScore').textContent = englishScore.toFixed(1);
+                document.getElementById('totalScore').textContent = totalScore.toFixed(1);
+                document.getElementById('encouragement').textContent = getEncouragement(totalScore);
+
+                // Show result with animation
+                document.getElementById('result').classList.add('show');
+
+                // Show wishes section
+                setTimeout(() => {
+                    document.getElementById('wishesSection').classList.add('show');
+                }, 500);
+
+                // Create sparkles
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => createSparkle(), i * 200);
+                }
+            }, 1500);
+        }
+
+        // Allow Enter key to trigger prediction
+        document.getElementById('name').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                predictScore();
+            }
+        });
+
+        // Create ambient sparkles
+        setInterval(() => {
+            if (Math.random() < 0.3) {
+                createSparkle();
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
